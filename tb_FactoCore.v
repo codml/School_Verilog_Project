@@ -15,7 +15,7 @@ module tb_FactoCore;
 	
 	always @(tb_interrupt) begin
 		if (tb_interrupt == 1'b1) begin
-			tb_s_wr <= 1'b0; #10; tb_s_wr <= tb_s_wr <= 1'b1;
+			tb_s_wr <= 1'b0; #10; tb_s_wr <= 1'b1;
 		end
 		else tb_s_wr <= 1'b1;
 	end

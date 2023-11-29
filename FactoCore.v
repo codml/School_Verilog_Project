@@ -55,34 +55,43 @@ module FactoCore(clk, reset_n, s_sel, s_wr, s_addr, s_din, s_dout, interrupt);
 		endcase
 	end
 	
-	always @(state, booth_op_done, s_din, s_sel, s_wr, s_addr) begin
+	always @(state, s_din, s_sel, s_wr, s_addr) begin
 	case(state)
 	INIT: begin
-		mem[OP_DONE] <= 64'b0;
-		mem[RESULT_H] <= 64'b0;
-		mem[RESULT_L] <= 64'b1;
 		casex({s_sel, s_wr, s_addr[7:3]})
 		{1'b1, 1'b1, OP_START}: mem[OP_START] <= s_din;
 		{1'b1, 1'b1, OP_CLEAR}: mem[OP_CLEAR] <= s_din;
 		{1'b1, 1'b1, INTR_EN}: mem[INTR_EN] <= s_din;
 		{1'b1, 1'b1, OPERAND}: mem[OPERAND] <= s_din;
 		endcase
-		if (s_addr[7:3] != OP_START) mem[OP_START] <= 64'b0;
-		if (s_addr[7:3] != OP_CLEAR) mem[OP_CLEAR] <= 64'b0;
-		if (s_addr[7:3] != INTR_EN) mem[INTR_EN] <= 64'b0;
-		if (s_addr[7:3] != OPERAND) mem[OPERAND] <= 64'b0;
+		if (s_addr[7:3] !== OP_START) mem[OP_START] <= 64'b0;
+		if (s_addr[7:3] !== OP_CLEAR) mem[OP_CLEAR] <= 64'b0;
+		if (s_addr[7:3] !== INTR_EN) mem[INTR_EN] <= 64'b0;
+		if (s_addr[7:3] !== OPERAND) mem[OPERAND] <= 64'b0;
+	end
+	default: begin
+		casex({s_sel, s_wr, s_addr[7:3]})
+		{1'b1, 1'b1, OP_START}: mem[OP_START] <= s_din;
+		{1'b1, 1'b1, OP_CLEAR}: mem[OP_CLEAR] <= s_din;
+		{1'b1, 1'b1, INTR_EN}: mem[INTR_EN] <= s_din;
+		{1'b1, 1'b1, OPERAND}: mem[OPERAND] <= s_din;
+		endcase
+	end
+	endcase
+	end
+
+	always @(state, booth_op_done, mem[OPERAND]) begin
+	case(state)
+	INIT: begin
+		mem[OP_DONE] <= 64'b0;
+		mem[RESULT_H] <= 64'b0;
+		mem[RESULT_L] <= 64'b1;
 		operand <= 64'b0;
 		booth_op_start <= 1'b0;
 		booth_op_clear <= 1'b0;
 		booth_input <= 64'b0;
 	end
 	SETTING: begin
-		casex({s_sel, s_wr, s_addr[7:3]})
-		{1'b1, 1'b1, OP_START}: mem[OP_START] <= s_din;
-		{1'b1, 1'b1, OP_CLEAR}: mem[OP_CLEAR] <= s_din;
-		{1'b1, 1'b1, INTR_EN}: mem[INTR_EN] <= s_din;
-		{1'b1, 1'b1, OPERAND}: mem[OPERAND] <= s_din;
-		endcase
 		operand <= mem[OPERAND];
 	end
 	MUL_1: begin
@@ -122,12 +131,6 @@ module FactoCore(clk, reset_n, s_sel, s_wr, s_addr, s_din, s_dout, interrupt);
 		end
 	end
 	DONE: begin
-		casex({s_sel, s_wr, s_addr[7:3]})
-		{1'b1, 1'b1, OP_START}: mem[OP_START] <= s_din;
-		{1'b1, 1'b1, OP_CLEAR}: mem[OP_CLEAR] <= s_din;
-		{1'b1, 1'b1, INTR_EN}: mem[INTR_EN] <= s_din;
-		{1'b1, 1'b1, OPERAND}: mem[OPERAND] <= s_din;
-		endcase
 	end
 	endcase
 	end
