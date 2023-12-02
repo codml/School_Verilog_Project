@@ -57,22 +57,22 @@ module FactoCore(clk, reset_n, s_sel, s_wr, s_addr, s_din, s_dout, interrupt);
 		endcase
 	end
 	
-	always @(posedge clk) begin
+	always @(state, s_din, s_wr, s_sel) begin
 	if (state == INIT || state == OP_CLR) mem[OP_START] <= 64'b0;
 	if (state == INIT) begin
 		mem[OP_CLEAR] <= 64'b0;
 		mem[INTR_EN] <= 64'b0;
 		mem[OPERAND] <= 64'b0;
 	end
-	casex({s_sel, s_wr, s_addr[7:3]})
-	{1'b1, 1'b1, OP_START}: mem[OP_START] <= s_din;
-	{1'b1, 1'b1, OP_CLEAR}: mem[OP_CLEAR] <= s_din;
-	{1'b1, 1'b1, INTR_EN}: mem[INTR_EN] <= s_din;
-	{1'b1, 1'b1, OPERAND}: mem[OPERAND] <= s_din;
+	case({s_sel, s_wr, s_addr[15:8], s_addr[7:3]})
+	{1'b1, 1'b1, 8'h70, OP_START}: mem[OP_START] <= s_din;
+	{1'b1, 1'b1, 8'h70, OP_CLEAR}: mem[OP_CLEAR] <= s_din;
+	{1'b1, 1'b1, 8'h70, INTR_EN}: mem[INTR_EN] <= s_din;
+	{1'b1, 1'b1, 8'h70, OPERAND}: mem[OPERAND][31:0] <= s_din[31:0];
 	endcase
 	end
 
-	always @(state, booth_op_done) begin
+	always @(state) begin
 	case(state)
 	INIT, OP_CLR: begin
 		mem[OP_DONE] <= 64'b0;
@@ -87,8 +87,11 @@ module FactoCore(clk, reset_n, s_sel, s_wr, s_addr, s_din, s_dout, interrupt);
 		operand <= mem[OPERAND];
 	end
 	MUL_1, MUL_2: begin
-		if (mem[OPERAND] == 64'b0 || mem[OPERAND] == 64'b1) mem[OP_DONE][1:0] <= 2'b11;
-		else if (operand == 64'b1) mem[OP_DONE][0] <= 1'b1;
+		if (mem[OPERAND] == 64'b0) begin
+			mem[RESULT_H] <= 64'd0;
+			mem[RESULT_L] <= 64'd1;
+			mem[OP_DONE][1:0] <= 2'b11;
+		end
 		else if (booth_op_start == 1'b0) begin
 			mem[OP_DONE][1] <= 1'b1;
 			booth_op_clear <= 1'b0;
@@ -101,17 +104,18 @@ module FactoCore(clk, reset_n, s_sel, s_wr, s_addr, s_din, s_dout, interrupt);
 			mem[RESULT_L] <= result_l;
 			booth_op_start <= 1'b0;
 			booth_op_clear <= 1'b1;
-			operand <= operand - 64'b1;
+			if (operand == 64'd2) mem[OP_DONE][0] <= 1'b1;
+			else operand <= operand - 64'b1;
 		end
 	end
 	endcase // do nothing when state is DONE
 	end
 	
-	always @(posedge clk) begin
-		casex({s_sel, s_wr, s_addr[7:3]})
-		{1'b1, 1'b0, OP_DONE}: s_dout <= mem[OP_DONE];
-		{1'b1, 1'b0, RESULT_H}: s_dout <= mem[RESULT_H];
-		{1'b1, 1'b0, RESULT_L}: s_dout <= mem[RESULT_L];
+	always @(posedge clk, posedge mem[OP_DONE][0]) begin
+		case({s_sel, s_wr, s_addr[15:8], s_addr[7:3]})
+		{1'b1, 1'b0, 8'h70, OP_DONE}: s_dout <= mem[OP_DONE];
+		{1'b1, 1'b0, 8'h70, RESULT_H}: s_dout <= mem[RESULT_H];
+		{1'b1, 1'b0, 8'h70, RESULT_L}: s_dout <= mem[RESULT_L];
 		default: s_dout <= 64'b0;
 		endcase
 	end

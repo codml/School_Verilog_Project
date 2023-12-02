@@ -11,7 +11,7 @@ module BUS(clk, reset_n, m_req, m_wr, m_addr, m_dout, s0_dout, s1_dout,
 	output [63:0] m_din, s_din;
 	
 	reg state, next_state; // state for grant
-	reg [1:0] addr, next_addr;
+	reg [1:0] addr;
 	
 	parameter NONE = 1'b0;
 	parameter M_GRANT = 1'b1;
@@ -23,17 +23,17 @@ module BUS(clk, reset_n, m_req, m_wr, m_addr, m_dout, s0_dout, s1_dout,
 		end
 		else begin
 			state <= next_state;
-			addr <= next_addr;
+			addr <= {s0_sel, s1_sel};
 		end
 	end
 	
 	always @(m_req, state) begin // arbiter next state
-		casex({state, m_req})
+		case({state, m_req})
 		{NONE, 1'b0}: next_state <= NONE;
 		{NONE, 1'b1}: next_state <= M_GRANT;
 		{M_GRANT, 1'b0}: next_state <= NONE;
 		{M_GRANT, 1'b1}: next_state <= M_GRANT;
-		default: next_state <= NONE;
+		default: next_state <= 1'bx;
 		endcase
 	end
 	
@@ -46,18 +46,9 @@ module BUS(clk, reset_n, m_req, m_wr, m_addr, m_dout, s0_dout, s1_dout,
 	end
 	
 	always @(m_req, s_addr) begin // address decoder
-		if (m_req == 1'b1 && s_addr >= 16'b0 && s_addr < 16'h0800) begin
-			{s0_sel, s1_sel} <= 2'b10;
-			next_addr <= 2'b10;
-		end
-		else if (m_req == 1'b1 && s_addr >= 16'h7000 && s_addr < 16'h7200) begin
-			{s0_sel, s1_sel} <= 2'b01;
-			next_addr <= 2'b01;
-		end
-		else begin
-			{s0_sel, s1_sel} <= 2'b00;
-			next_addr <= 2'b00;
-		end
+		if (m_req == 1'b1 && s_addr >= 16'b0 && s_addr < 16'h0800) {s0_sel, s1_sel} <= 2'b10;
+		else if (m_req == 1'b1 && s_addr >= 16'h7000 && s_addr < 16'h7200) {s0_sel, s1_sel} <= 2'b01;
+		else {s0_sel, s1_sel} <= 2'b00;
 	end
 	
 	mx2 U0_mx2(.y(s_wr), .d0(1'bx), .d1(m_wr), .s(m_grant));
