@@ -25,6 +25,7 @@ module tb_Top;
 		
 		tb_m_wr = 1'b1;
 		tb_m_addr = 16'h7008; #10;
+		tb_m_dout = 64'b0; #10;
 		
 		tb_m_addr = 16'h0070; tb_m_dout = 64'd120; #10;
 		tb_m_wr = 1'b0;
@@ -40,6 +41,7 @@ module tb_Top;
 		
 		tb_m_wr = 1'b1;
 		tb_m_addr = 16'h7008; #10;
+		tb_m_dout = 64'b0; #10;
 		
 		tb_m_addr = 16'h00ff; tb_m_dout = 64'd3628800; #10;
 		tb_m_wr = 1'b0;

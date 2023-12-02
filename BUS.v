@@ -33,7 +33,7 @@ module BUS(clk, reset_n, m_req, m_wr, m_addr, m_dout, s0_dout, s1_dout,
 		{NONE, 1'b1}: next_state <= M_GRANT;
 		{M_GRANT, 1'b0}: next_state <= NONE;
 		{M_GRANT, 1'b1}: next_state <= M_GRANT;
-		default: next_state <= 1'bx;
+		default: next_state <= NONE;
 		endcase
 	end
 	
@@ -45,21 +45,19 @@ module BUS(clk, reset_n, m_req, m_wr, m_addr, m_dout, s0_dout, s1_dout,
 		endcase
 	end
 	
-	always @(m_grant, s_addr) begin // address decoder
-		casex({m_grant, s_addr})
-		{1'b1, 16'b0000_0xxx_xxxx_xxxx}: begin
+	always @(m_req, s_addr) begin // address decoder
+		if (m_req == 1'b1 && s_addr >= 16'b0 && s_addr < 16'h0800) begin
 			{s0_sel, s1_sel} <= 2'b10;
 			next_addr <= 2'b10;
 		end
-		{1'b1, 16'b0111_000x_xxxx_xxxx}: begin
+		else if (m_req == 1'b1 && s_addr >= 16'h7000 && s_addr < 16'h7200) begin
 			{s0_sel, s1_sel} <= 2'b01;
 			next_addr <= 2'b01;
 		end
-		default: begin
+		else begin
 			{s0_sel, s1_sel} <= 2'b00;
 			next_addr <= 2'b00;
 		end
-		endcase
 	end
 	
 	mx2 U0_mx2(.y(s_wr), .d0(1'bx), .d1(m_wr), .s(m_grant));

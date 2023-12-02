@@ -18,7 +18,7 @@ module tb_BUS;
 	end
 	
 	initial begin
-	tb_clk = 1'b1; tb_reset_n = 1'b0; tb_m_req = 1'b0; tb_m_wr = 1'b0; tb_m_addr = 16'h0000;
+	tb_clk = 1'b1; tb_reset_n = 1'b0; tb_m_wr = 1'b0; tb_m_addr = 16'h0000;
 	tb_m_dout = 64'hffff; tb_s0_dout = 64'h0f0f; tb_s1_dout = 64'hf0f0; #5;
 	tb_reset_n = 1'b1; #10;
 	tb_m_req = 1'b1; #10;
@@ -26,6 +26,7 @@ module tb_BUS;
 	tb_m_addr = 16'h6060; #10;
 	tb_m_wr = 1'b1; tb_m_addr = 16'h07ff; #10;
 	tb_m_wr = 1'b0; tb_m_addr = 16'h7000; #10;
+	tb_m_req = 1'b0; #10;
 	$stop;
 	end
 endmodule
