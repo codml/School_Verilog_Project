@@ -7,7 +7,7 @@ module multiply_one(multiplicand, product, part_multiplier, result); // multiply
 	
 	wire signed [127:0] type_1, type_2, type_3, type_4, type_5, type_6, type_7, type_8;
 	wire signed [127:0] type_9, type_10, type_11, type_12, type_13, type_14, type_15, type_16;
-	wire [63:0] complement; // complement = ~product
+	wire signed [63:0] complement; // complement = ~product
 	
 	always @(multiplicand, product, part_multiplier) begin
 		case(part_multiplier) // radix-16 multiplier decoding
@@ -47,7 +47,7 @@ module multiply_one(multiplicand, product, part_multiplier, result); // multiply
 		endcase
 	end
 	
-	cla64 U0_cla64(.a(~multiplicand), .b(64'b1), .ci(1'b0), .s(complement), .co()); // ~1
+	cla64 U0_cla64(.a(~multiplicand), .b(64'b0), .ci(1'b1), .s(complement), .co()); // ~1
 	cla128 U1_cla128(.a(product), .b({multiplicand, 64'b0}), .ci(1'b0), .s(type_1), .co()); // 0001
 	cla128 U2_cla128(.a(product >>> 1), .b({multiplicand, 64'b0}), .ci(1'b0), .s(type_2), .co()); // 0010
 	cla128 U3_cla128(.a(type_1 >>> 1), .b({multiplicand, 64'b0}), .ci(1'b0), .s(type_3), .co()); // 0011

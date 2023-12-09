@@ -46,8 +46,8 @@ module BUS(clk, reset_n, m_req, m_wr, m_addr, m_dout, s0_dout, s1_dout,
 	end
 	
 	always @(m_req, s_addr) begin // address decoder
-		if (m_req == 1'b1 && s_addr >= 16'b0 && s_addr < 16'h0800) {s0_sel, s1_sel} <= 2'b10;
-		else if (m_req == 1'b1 && s_addr >= 16'h7000 && s_addr < 16'h7200) {s0_sel, s1_sel} <= 2'b01;
+		if (m_req === 1'b1 && s_addr >= 16'b0 && s_addr < 16'h0800) {s0_sel, s1_sel} <= 2'b10;
+		else if (m_req === 1'b1 && s_addr >= 16'h7000 && s_addr < 16'h7200) {s0_sel, s1_sel} <= 2'b01;
 		else {s0_sel, s1_sel} <= 2'b00;
 	end
 	
